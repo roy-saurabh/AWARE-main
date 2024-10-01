@@ -1,4 +1,4 @@
-# Predicting Mental Health Risk Using Wearable Device Data
+# AWARE: Analysis of Wearables for Assessing Risk and Evaluation 
 
 This repository contains the complete code and instructions to replicate the analysis of predicting mental health risk using wearable device data. The focus is on heart rate variability (HRV) metrics and mental health questionnaire data. The analysis includes data preprocessing with MICE imputation, data transformation, modeling using Convolutional Neural Networks (CNNs), and evaluation of the models.
 
