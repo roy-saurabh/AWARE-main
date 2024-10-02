@@ -1,4 +1,4 @@
-# Predicting Mental Health Risk Using Wearable Device Data
+# AWARE: Analysis of Wearables for Assessing Risk and Evaluation
 
 This repository contains the complete code and instructions to replicate the analysis of predicting mental health risk using wearable device data. The focus is on heart rate variability (HRV) metrics and mental health questionnaire data. The analysis includes data preprocessing with MICE imputation, data transformation, modeling using Convolutional Neural Networks (CNNs), and evaluation of the models.
 
@@ -9,9 +9,9 @@ This repository contains the complete code and instructions to replicate the ana
 ## Repository Structure
 
 ```
-Predicting-Mental-Health-Risk/
+AWARE-main/
 ├── data/
-│   └── [Your data files here]
+│   └── [Project data files here]
 ├── notebooks/
 │   └── mental_health_risk_prediction.ipynb
 ├── src/
@@ -26,7 +26,7 @@ Predicting-Mental-Health-Risk/
 └── LICENSE
 ```
 
-- **data/**: Directory where you should place your dataset files.
+- **data/**: Directory to place the relevant dataset files.
 - **notebooks/**: Jupyter notebooks for interactive analysis.
 - **src/**: Source code modules for data preprocessing, model training, and utility functions.
 - **models/**: Directory to save trained models.
@@ -46,11 +46,11 @@ Predicting-Mental-Health-Risk/
 
 ### Data Files
 
-**Important:** The data files required for this analysis are not included due to sensitivity concerns. You will need to obtain similar datasets to replicate the analysis.
+**Important:** The data files required for this analysis are not included due to sensitivity concerns. Obtain similar datasets to replicate the analysis.
 
 #### Questionnaire Data Files
 
-Place your questionnaire data files in the `data/` directory. The expected files are:
+Place the questionnaire data files in the `data/` directory. The expected files are:
 
 - `patient_health_questionnaire_phq9.csv`
 - `generalized_anxiety_disorder_scale_gad7.csv`
@@ -60,7 +60,7 @@ These files should contain the mental health questionnaire responses for partici
 
 #### Wearable Device Data Files
 
-Place your wearable device data files in the `data/` directory. The expected files are:
+Place the wearable device data files in the `data/` directory. The expected files are:
 
 - `garmin_epoch_run.csv`
 - `garmin_epoch_walk.csv`
@@ -80,8 +80,8 @@ These files should contain HRV metrics and other relevant data collected from we
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/your-username/Predicting-Mental-Health-Risk.git
-   cd Predicting-Mental-Health-Risk
+   git clone https://github.com/roy-saurabh/AWARE-main.git
+   cd AWARE-main
    ```
 
 2. **Create a Virtual Environment (Optional but Recommended)**
@@ -115,7 +115,7 @@ python src/data_preprocessing.py
 
 This script performs the following steps:
 
-- Loads the wearable device data and questionnaire data from the files you have placed in the `data/` directory.
+- Loads the wearable device data and questionnaire data from the files placed in the `data/` directory.
 - Normalizes `participant_id` columns and merges the datasets on `participant_id`.
 - Converts timestamp columns to datetime objects.
 - Cleans and standardizes numeric columns.
@@ -124,127 +124,7 @@ This script performs the following steps:
 
 #### `data_preprocessing.py`
 
-```python
-# src/data_preprocessing.py
-
-import pandas as pd
-import numpy as np
-import os
-from sklearn.experimental import enable_iterative_imputer  # noqa
-from sklearn.impute import IterativeImputer
-
-def load_questionnaire_data():
-    """Loads questionnaire data from CSV files."""
-    questionnaire_files = [
-        "patient_health_questionnaire_phq9.csv",
-        "generalized_anxiety_disorder_scale_gad7.csv",
-        "perceived_stress_scale_pss4.csv"
-    ]
-    dfs = []
-    for file in questionnaire_files:
-        df = pd.read_csv(os.path.join('data', file))
-        dfs.append(df)
-    questionnaire_data = pd.concat(dfs, ignore_index=True)
-    return questionnaire_data
-
-def load_dht_data():
-    """Loads wearable device data from CSV files."""
-    dht_files = [
-        "garmin_epoch_run.csv",
-        "garmin_epoch_walk.csv",
-        "garmin_epoch_idle.csv",
-        "oura_readiness.csv",
-        "oura_extension_readiness.csv",
-        "oura_sleep.csv",
-        "oura_extension_sleep.csv",
-        "oura_extension_activity.csv"
-    ]
-    dfs = []
-    for file in dht_files:
-        df = pd.read_csv(os.path.join('data', file))
-        dfs.append(df)
-    dht_data = pd.concat(dfs, ignore_index=True)
-    return dht_data
-
-def normalize_participant_ids(df):
-    """Standardizes participant_id columns."""
-    df['participant_id'] = df['participant_id'].astype(str).str.strip().str.upper()
-    return df
-
-def merge_datasets(dht_data, questionnaire_data):
-    """Merges the wearable and questionnaire data."""
-    merged_data = pd.merge(dht_data, questionnaire_data, on='participant_id', how='inner')
-    return merged_data
-
-def process_timestamps(merged_data):
-    """Converts and processes timestamp columns."""
-    # Rename and convert timestamps
-    if 'summary_date' in merged_data.columns:
-        merged_data.rename(columns={'summary_date': 'timestamp_dht'}, inplace=True)
-    timestamp_cols = ['timestamp_dht', 'phq9_ts', 'gad_ts', 'pss4_ts']
-    for col in timestamp_cols:
-        if col in merged_data.columns:
-            merged_data[col] = pd.to_datetime(merged_data[col], errors='coerce')
-            merged_data[col] = merged_data[col].dt.floor('D')
-    # Drop rows with missing timestamp_dht
-    merged_data.dropna(subset=['timestamp_dht'], inplace=True)
-    return merged_data
-
-def clean_numeric_columns(merged_data):
-    """Cleans and standardizes numeric columns."""
-    numeric_cols = [
-        'score_hrv_balance', 'rmssd', 'hr_lowest',
-        'score_sleep_balance', 'score_total', 'deep',
-        'light', 'rem', 'efficiency', 'onset_latency',
-        'hr_average', 'phq9_total', 'gad_total', 'pss4_total'
-    ]
-    available_numeric_cols = [col for col in numeric_cols if col in merged_data.columns]
-    merged_data[available_numeric_cols] = merged_data[available_numeric_cols].apply(pd.to_numeric, errors='coerce')
-    return merged_data, available_numeric_cols
-
-def impute_missing_values(merged_data, available_numeric_cols):
-    """Performs MICE imputation on missing values."""
-    mice_imputer = IterativeImputer(max_iter=10, random_state=42)
-    merged_data[available_numeric_cols] = mice_imputer.fit_transform(merged_data[available_numeric_cols])
-    return merged_data
-
-def save_preprocessed_data(merged_data):
-    """Saves the cleaned and imputed data to CSV."""
-    if not os.path.exists('data'):
-        os.makedirs('data')
-    merged_data.to_csv('data/merged_data_preprocessed.csv', index=False)
-    print("Preprocessed data saved to 'data/merged_data_preprocessed.csv'.")
-
-def main():
-    # Load data
-    questionnaire_data = load_questionnaire_data()
-    dht_data = load_dht_data()
-
-    # Normalize participant IDs
-    questionnaire_data = normalize_participant_ids(questionnaire_data)
-    dht_data = normalize_participant_ids(dht_data)
-
-    # Merge datasets
-    merged_data = merge_datasets(dht_data, questionnaire_data)
-    print(f"Merged data shape: {merged_data.shape}")
-
-    # Process timestamps
-    merged_data = process_timestamps(merged_data)
-
-    # Clean numeric columns
-    merged_data, available_numeric_cols = clean_numeric_columns(merged_data)
-
-    # Impute missing values
-    merged_data = impute_missing_values(merged_data, available_numeric_cols)
-
-    # Save preprocessed data
-    save_preprocessed_data(merged_data)
-
-if __name__ == "__main__":
-    main()
-```
-
-**Note:** Replace the filenames in `questionnaire_files` and `dht_files` with the actual filenames of your datasets if they differ.
+**Note:** Replace the filenames in `data/` directory with the actual filenames of the datasets if they differ.
 
 ### 2. Modeling
 
@@ -271,13 +151,13 @@ Utility functions used across different scripts.
 
 #### `utils.py`
 
-### 4. Jupyter Notebook
+### 4. Colab Notebook
 
-An interactive Jupyter notebook for exploratory data analysis and visualization.
+An interactive Colab notebook for exploratory data analysis and visualization.
 
 #### `mental_health_risk_prediction.ipynb`
 
-Due to format limitations, I cannot provide the actual `.ipynb` file here, but you can create the notebook using the scripts and code provided in `data_preprocessing.py` and `model_training.py`. The notebook would include:
+Create the notebook using the scripts and code provided in `data_preprocessing.py` and `model_training.py`. The notebook would include:
 
 - Data loading and exploration
 - Visualization of data distributions
@@ -289,7 +169,7 @@ Due to format limitations, I cannot provide the actual `.ipynb` file here, but y
 
 #### `hrv_cnn_model.h5`
 
-The `hrv_cnn_model.h5` file is the saved trained model generated after running `model_training.py`. You can generate this file by running:
+The `hrv_cnn_model.h5` file is the saved trained model generated after running `model_training.py`. Generate this file by running:
 
 ```bash
 python src/model_training.py
@@ -328,8 +208,8 @@ pip install -r requirements.txt
 
 1. **Ensure Data Availability**
 
-   - Place your questionnaire data files (`patient_health_questionnaire_phq9.csv`, `generalized_anxiety_disorder_scale_gad7.csv`, `perceived_stress_scale_pss4.csv`) in the `data/` directory.
-   - Place your wearable device data files (`garmin_epoch_run.csv`, `oura_readiness.csv`, etc.) in the `data/` directory.
+   - Place the questionnaire data files (`patient_health_questionnaire_phq9.csv`, `generalized_anxiety_disorder_scale_gad7.csv`, `perceived_stress_scale_pss4.csv`) in the `data/` directory.
+   - Place the wearable device data files (`garmin_epoch_run.csv`, `oura_readiness.csv`, etc.) in the `data/` directory.
 
 2. **Data Preprocessing**
 
@@ -353,23 +233,23 @@ pip install -r requirements.txt
 
 4. **Results and Evaluation**
 
-   The evaluation metrics and plots will be displayed during the model training process. You can also explore the `mental_health_risk_prediction.ipynb` notebook for an interactive analysis.
+   The evaluation metrics and plots will be displayed during the model training process. Explore the `mental_health_risk_prediction.ipynb` notebook for an interactive analysis.
 
 ### Reproducing the Results
 
-To reproduce the results, follow the steps above. Ensure that you use the same random seed (`random_state=42`) for data splitting and model training to obtain consistent results.
+To reproduce the results, follow the steps above. Use the same random seed (`random_state=42`) for data splitting and model training to obtain consistent results.
 
-**Note:** Since the data files are not included due to sensitivity, you will need to use your own datasets. The scripts are designed to work with data files that have similar structures to those expected by the code.
+**Note:** Since the data files are not included due to sensitivity, use the relevant datasets. The scripts are designed to work with data files that have similar structures to those expected by the code.
 
 ### Customization
 
 - **Adjusting Model Parameters**
 
-  You can modify the CNN architecture, hyperparameters, and training settings in the `model_training.py` script.
+  Modify the CNN architecture, hyperparameters, and training settings in the `model_training.py` script.
 
 - **Using Different Data**
 
-  Replace the data files in the `data/` directory with your own datasets, ensuring they have the necessary columns.
+  Replace the data files in the `data/` directory with the datasets, ensuring they have the necessary columns.
 
 ---
 
@@ -391,13 +271,13 @@ To reproduce the results, follow the steps above. Ensure that you use the same r
 
 ## Contributing
 
-If you'd like to contribute to this project, please follow these steps:
+To contribute to this project, please follow these steps:
 
 1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Commit your changes with clear messages.
-4. Push to your forked repository.
-5. Submit a pull request detailing your changes.
+2. Create a new branch for the feature or bug fix.
+3. Commit the changes with clear messages.
+4. Push to the forked repository.
+5. Submit a pull request detailing the changes.
 
 ---
 

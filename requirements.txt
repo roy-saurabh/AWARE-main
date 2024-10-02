@@ -5,4 +5,5 @@ tensorflow
 keras
 matplotlib
 seaborn
+fancyimpute
 pyts

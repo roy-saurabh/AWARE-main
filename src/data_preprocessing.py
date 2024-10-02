@@ -5,6 +5,7 @@ import numpy as np
 import os
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import IterativeImputer
+from sklearn.preprocessing import StandardScaler
 
 def load_questionnaire_data():
     """Loads questionnaire data from CSV files."""
@@ -75,18 +76,41 @@ def clean_numeric_columns(merged_data):
     merged_data[available_numeric_cols] = merged_data[available_numeric_cols].apply(pd.to_numeric, errors='coerce')
     return merged_data, available_numeric_cols
 
+def optimize_data_types(merged_data, available_numeric_cols):
+    """Optimizes data types to reduce memory usage."""
+    # Downcast numeric columns
+    for col in available_numeric_cols:
+        if merged_data[col].dtype == 'float64':
+            merged_data[col] = pd.to_numeric(merged_data[col], downcast='float')
+        elif merged_data[col].dtype == 'int64':
+            merged_data[col] = pd.to_numeric(merged_data[col], downcast='integer')
+    # Convert object columns to category
+    object_cols = merged_data.select_dtypes(include=['object']).columns
+    for col in object_cols:
+        merged_data[col] = merged_data[col].astype('category')
+    return merged_data
+
 def impute_missing_values(merged_data, available_numeric_cols):
-    """Performs MICE imputation on missing values."""
-    mice_imputer = IterativeImputer(max_iter=10, random_state=42)
-    merged_data[available_numeric_cols] = mice_imputer.fit_transform(merged_data[available_numeric_cols])
+    """Performs MICE imputation on missing values with scaling."""
+    # Scale data
+    scaler = StandardScaler()
+    scaled_data = scaler.fit_transform(merged_data[available_numeric_cols])
+
+    # Impute missing values
+    mice_imputer = IterativeImputer(max_iter=50, random_state=42, tol=1e-3, verbose=2)
+    imputed_data = mice_imputer.fit_transform(scaled_data)
+
+    # Inverse transform to original scale
+    merged_data[available_numeric_cols] = scaler.inverse_transform(imputed_data)
     return merged_data
 
 def save_preprocessed_data(merged_data):
-    """Saves the cleaned and imputed data to CSV."""
+    """Saves the cleaned and imputed data to a compressed CSV."""
     if not os.path.exists('data'):
         os.makedirs('data')
-    merged_data.to_csv('data/merged_data_preprocessed.csv', index=False)
-    print("Preprocessed data saved to 'data/merged_data_preprocessed.csv'.")
+    # Save as compressed CSV to reduce file size
+    merged_data.to_csv('data/merged_data_preprocessed.csv.gz', index=False, compression='gzip')
+    print("Preprocessed data saved to 'data/merged_data_preprocessed.csv.gz'.")
 
 def main():
     # Load data
@@ -106,6 +130,9 @@ def main():
 
     # Clean numeric columns
     merged_data, available_numeric_cols = clean_numeric_columns(merged_data)
+
+    # Optimize data types
+    merged_data = optimize_data_types(merged_data, available_numeric_cols)
 
     # Impute missing values
     merged_data = impute_missing_values(merged_data, available_numeric_cols)
