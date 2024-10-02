@@ -1,4 +1,4 @@
-# AWARE: Analysis of Wearables for Assessing Risk and Evaluation 
+# AWARE: Analysis of Wearables for Assessing Risk and Evaluation
 
 This repository contains the complete code and instructions to replicate the analysis of predicting mental health risk using wearable device data. The focus is on heart rate variability (HRV) metrics and mental health questionnaire data. The analysis includes data preprocessing with MICE imputation, data transformation, modeling using Convolutional Neural Networks (CNNs), and evaluation of the models.
 
@@ -26,7 +26,7 @@ AWARE-main/
 └── LICENSE
 ```
 
-- **data/**: Directory where you should place your dataset files.
+- **data/**: Directory to place the relevant dataset files.
 - **notebooks/**: Jupyter notebooks for interactive analysis.
 - **src/**: Source code modules for data preprocessing, model training, and utility functions.
 - **models/**: Directory to save trained models.
@@ -46,11 +46,11 @@ AWARE-main/
 
 ### Data Files
 
-**Important:** The data files required for this analysis are not included due to sensitivity concerns. You will need to obtain similar datasets to replicate the analysis.
+**Important:** The data files required for this analysis are not included due to sensitivity concerns. Obtain similar datasets to replicate the analysis.
 
 #### Questionnaire Data Files
 
-Place your questionnaire data files in the `data/` directory. The expected files are:
+Place the questionnaire data files in the `data/` directory. The expected files are:
 
 - `patient_health_questionnaire_phq9.csv`
 - `generalized_anxiety_disorder_scale_gad7.csv`
@@ -60,7 +60,7 @@ These files should contain the mental health questionnaire responses for partici
 
 #### Wearable Device Data Files
 
-Place your wearable device data files in the `data/` directory. The expected files are:
+Place the wearable device data files in the `data/` directory. The expected files are:
 
 - `garmin_epoch_run.csv`
 - `garmin_epoch_walk.csv`
@@ -115,7 +115,7 @@ python src/data_preprocessing.py
 
 This script performs the following steps:
 
-- Loads the wearable device data and questionnaire data from the files you have placed in the `data/` directory.
+- Loads the wearable device data and questionnaire data from the files placed in the `data/` directory.
 - Normalizes `participant_id` columns and merges the datasets on `participant_id`.
 - Converts timestamp columns to datetime objects.
 - Cleans and standardizes numeric columns.
@@ -124,7 +124,7 @@ This script performs the following steps:
 
 #### `data_preprocessing.py`
 
-**Note:** Replace the filenames in `questionnaire_files` and `dht_files` with the actual filenames of the datasets if they differ.
+**Note:** Replace the filenames in `data/` directory with the actual filenames of the datasets if they differ.
 
 ### 2. Modeling
 
@@ -151,13 +151,13 @@ Utility functions used across different scripts.
 
 #### `utils.py`
 
-### 4. Jupyter Notebook
+### 4. Colab Notebook
 
-An interactive Jupyter notebook for exploratory data analysis and visualization.
+An interactive Colab notebook for exploratory data analysis and visualization.
 
 #### `mental_health_risk_prediction.ipynb`
 
-Due to format limitations, I cannot provide the actual `.ipynb` file here, but you can create the notebook using the scripts and code provided in `data_preprocessing.py` and `model_training.py`. The notebook would include:
+Create the notebook using the scripts and code provided in `data_preprocessing.py` and `model_training.py`. The notebook would include:
 
 - Data loading and exploration
 - Visualization of data distributions
@@ -169,7 +169,7 @@ Due to format limitations, I cannot provide the actual `.ipynb` file here, but y
 
 #### `hrv_cnn_model.h5`
 
-The `hrv_cnn_model.h5` file is the saved trained model generated after running `model_training.py`. You can generate this file by running:
+The `hrv_cnn_model.h5` file is the saved trained model generated after running `model_training.py`. Generate this file by running:
 
 ```bash
 python src/model_training.py
@@ -208,8 +208,8 @@ pip install -r requirements.txt
 
 1. **Ensure Data Availability**
 
-   - Place your questionnaire data files (`patient_health_questionnaire_phq9.csv`, `generalized_anxiety_disorder_scale_gad7.csv`, `perceived_stress_scale_pss4.csv`) in the `data/` directory.
-   - Place your wearable device data files (`garmin_epoch_run.csv`, `oura_readiness.csv`, etc.) in the `data/` directory.
+   - Place the questionnaire data files (`patient_health_questionnaire_phq9.csv`, `generalized_anxiety_disorder_scale_gad7.csv`, `perceived_stress_scale_pss4.csv`) in the `data/` directory.
+   - Place the wearable device data files (`garmin_epoch_run.csv`, `oura_readiness.csv`, etc.) in the `data/` directory.
 
 2. **Data Preprocessing**
 
@@ -233,23 +233,23 @@ pip install -r requirements.txt
 
 4. **Results and Evaluation**
 
-   The evaluation metrics and plots will be displayed during the model training process. You can also explore the `mental_health_risk_prediction.ipynb` notebook for an interactive analysis.
+   The evaluation metrics and plots will be displayed during the model training process. Explore the `mental_health_risk_prediction.ipynb` notebook for an interactive analysis.
 
 ### Reproducing the Results
 
-To reproduce the results, follow the steps above. Ensure that you use the same random seed (`random_state=42`) for data splitting and model training to obtain consistent results.
+To reproduce the results, follow the steps above. Use the same random seed (`random_state=42`) for data splitting and model training to obtain consistent results.
 
-**Note:** Since the data files are not included due to sensitivity, you will need to use your own datasets. The scripts are designed to work with data files that have similar structures to those expected by the code.
+**Note:** Since the data files are not included due to sensitivity, use the relevant datasets. The scripts are designed to work with data files that have similar structures to those expected by the code.
 
 ### Customization
 
 - **Adjusting Model Parameters**
 
-  You can modify the CNN architecture, hyperparameters, and training settings in the `model_training.py` script.
+  Modify the CNN architecture, hyperparameters, and training settings in the `model_training.py` script.
 
 - **Using Different Data**
 
-  Replace the data files in the `data/` directory with your own datasets, ensuring they have the necessary columns.
+  Replace the data files in the `data/` directory with the datasets, ensuring they have the necessary columns.
 
 ---
 
@@ -271,13 +271,13 @@ To reproduce the results, follow the steps above. Ensure that you use the same r
 
 ## Contributing
 
-If you'd like to contribute to this project, please follow these steps:
+To contribute to this project, please follow these steps:
 
 1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Commit your changes with clear messages.
-4. Push to your forked repository.
-5. Submit a pull request detailing your changes.
+2. Create a new branch for the feature or bug fix.
+3. Commit the changes with clear messages.
+4. Push to the forked repository.
+5. Submit a pull request detailing the changes.
 
 ---
 
