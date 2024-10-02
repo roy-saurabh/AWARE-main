@@ -11,7 +11,7 @@ This repository contains the complete code and instructions to replicate the ana
 ```
 AWARE-main/
 ├── data/
-│   └── [Your data files here]
+│   └── [Project data files here]
 ├── notebooks/
 │   └── mental_health_risk_prediction.ipynb
 ├── src/
