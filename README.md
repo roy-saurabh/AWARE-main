@@ -9,7 +9,7 @@ This repository contains the complete code and instructions to replicate the ana
 ## Repository Structure
 
 ```
-Predicting-Mental-Health-Risk/
+AWARE-main/
 ├── data/
 │   └── [Your data files here]
 ├── notebooks/
@@ -80,8 +80,8 @@ These files should contain HRV metrics and other relevant data collected from we
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/your-username/Predicting-Mental-Health-Risk.git
-   cd Predicting-Mental-Health-Risk
+   git clone https://github.com/roy-saurabh/AWARE-main.git
+   cd AWARE-main
    ```
 
 2. **Create a Virtual Environment (Optional but Recommended)**
