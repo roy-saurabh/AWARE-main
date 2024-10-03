@@ -13,8 +13,8 @@ from utils import plot_training_history, plot_confusion_matrix, plot_roc_curve
 import os
 
 def load_preprocessed_data():
-    """Loads the preprocessed data."""
-    data = pd.read_csv('data/merged_data_preprocessed.csv')
+    """Loads the preprocessed data from the compressed CSV."""
+    data = pd.read_csv('data/merged_data_preprocessed.csv.gz', compression='gzip')
     return data
 
 def transform_time_series_to_gaf(data):
@@ -59,11 +59,13 @@ def build_cnn_model(input_shape):
     return model
 
 def train_model(X_train, y_train, X_val, y_val, input_shape):
-    """Compiles and trains the model with callbacks."""
+    """Compiles and trains the CNN model with early stopping and learning rate reduction."""
     model = build_cnn_model(input_shape)
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    
     early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
+    
     history = model.fit(
         X_train, y_train,
         epochs=30,
@@ -71,40 +73,60 @@ def train_model(X_train, y_train, X_val, y_val, input_shape):
         batch_size=32,
         callbacks=[early_stopping, reduce_lr]
     )
+    
     return model, history
 
 def evaluate_model(model, X_test, y_test):
-    """Evaluates the model and prints metrics."""
+    """Evaluates the model performance on test data."""
     test_loss, test_accuracy = model.evaluate(X_test, y_test)
     print(f'Test Accuracy: {test_accuracy}, Loss: {test_loss}')
+    
     y_pred_probs = model.predict(X_test)
     y_pred = (y_pred_probs > 0.5).astype(int).flatten()
+    
     plot_confusion_matrix(y_test, y_pred)
     plot_roc_curve(y_test, y_pred_probs)
+    
     print("Classification Report:")
     print(classification_report(y_test, y_pred))
+    
     return y_pred_probs, y_pred
 
 def save_model(model):
-    """Saves the trained model to disk."""
+    """Saves the trained CNN model to disk."""
     if not os.path.exists('models'):
         os.makedirs('models')
     model.save('models/hrv_cnn_model.h5')
     print("Model saved to 'models/hrv_cnn_model.h5'.")
 
 def main():
+    """Main function for loading data, training the model, and evaluating results."""
+    # Load preprocessed data
     data = load_preprocessed_data()
+    
+    # Transform time series data into GAF images
     X, y = transform_time_series_to_gaf(data)
+    
     if len(X) == 0:
         print("No sufficient data to train the model. Exiting...")
         return
+    
+    # Split data into training and testing sets
     input_shape = (32, 32, 1)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
+    
+    # Train the model
     model, history = train_model(X_train, y_train, X_test, y_test, input_shape)
+    
+    # Save the trained model
     save_model(model)
+    
+    # Evaluate model performance
     y_pred_probs, y_pred = evaluate_model(model, X_test, y_test)
+    
+    # Plot training history
     plot_training_history(history)
 
 if __name__ == "__main__":

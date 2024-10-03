@@ -5,6 +5,7 @@ import numpy as np
 import os
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import IterativeImputer
+from sklearn.ensemble import HistGradientBoostingRegressor  # New estimator to handle NaNs
 from sklearn.preprocessing import StandardScaler
 
 def load_questionnaire_data():
@@ -92,16 +93,24 @@ def optimize_data_types(merged_data, available_numeric_cols):
 
 def impute_missing_values(merged_data, available_numeric_cols):
     """Performs MICE imputation on missing values with scaling."""
+    # Check for any NaN values before imputation
+    print(f"NaN values before imputation: {merged_data[available_numeric_cols].isnull().sum().sum()}")
+
     # Scale data
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(merged_data[available_numeric_cols])
 
-    # Impute missing values
-    mice_imputer = IterativeImputer(max_iter=50, random_state=42, tol=1e-3, verbose=2)
+    # Impute missing values using HistGradientBoostingRegressor
+    mice_imputer = IterativeImputer(max_iter=50, random_state=42, tol=1e-3, verbose=2, 
+                                    estimator=HistGradientBoostingRegressor())
     imputed_data = mice_imputer.fit_transform(scaled_data)
 
     # Inverse transform to original scale
     merged_data[available_numeric_cols] = scaler.inverse_transform(imputed_data)
+
+    # Check for any NaN values after imputation
+    print(f"NaN values after imputation: {merged_data[available_numeric_cols].isnull().sum().sum()}")
+
     return merged_data
 
 def save_preprocessed_data(merged_data):
